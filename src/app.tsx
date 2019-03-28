@@ -25,11 +25,24 @@ export class App extends Component<{}, State> {
   render() {
     const { rows } = this.state
     const { handleSubmit } = this._form
-    return <form onSubmit={handleSubmit}>{rows}</form>
+    return (
+      <div
+        style={{
+          display: 'flex',
+          minHeight: '100vh'
+        }}
+      >
+        <form style={{ margin: 'auto' }} onSubmit={handleSubmit}>
+          {rows}
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <button onClick={this.addRow}>ADD</button>
+          </div>
+        </form>
+      </div>
+    )
   }
 
   private renderRow = (index?: number) => {
-    let hasBtn = true
     if (index === undefined) index = this.state.rows.length
 
     const cols: FieldData<string>[] = []
@@ -48,11 +61,10 @@ export class App extends Component<{}, State> {
     })
 
     return (
-      <div key={index}>
+      <div key={index} style={{ marginBottom: 20 }}>
         {cols.map(field => (
           <TextField key={field.name} {...field} />
         ))}
-        {hasBtn && <button onClick={this.addRow}>+</button>}
       </div>
     )
   }
