@@ -1,12 +1,19 @@
 import React, { Component } from 'react'
-import { formBuilder, FieldData } from 'forms-builder'
-import { TextField } from './components/text-field'
+import { formBuilder } from 'forms-builder'
+import { NumberField, NumberFieldData } from './components/number-field'
 import { range } from './utils'
 
 const COL_COUNT = 3
 
+// interface OnChangeFnArgs {
+//   field: NumberFieldData
+//   value: number | undefined
+//   colIndex: number
+//   fieldIndex: number
+// }
+
 interface State {
-  rows: React.ReactNode[]
+  rowsCount: number
 }
 
 export class App extends Component<{}, State> {
@@ -18,13 +25,14 @@ export class App extends Component<{}, State> {
     super(props)
 
     this.state = {
-      rows: [this.renderRow(0)]
+      rowsCount: 1
     }
   }
 
   render() {
-    const { rows } = this.state
     const { handleSubmit } = this._form
+    const { rowsCount } = this.state
+    const rows = new Array(rowsCount).fill(0)
     return (
       <div
         style={{
@@ -33,7 +41,7 @@ export class App extends Component<{}, State> {
         }}
       >
         <form style={{ margin: 'auto' }} onSubmit={handleSubmit}>
-          {rows}
+          {rows.map((_, index) => this.renderRow(index))}
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <button onClick={this.addRow}>ADD</button>
           </div>
@@ -42,17 +50,15 @@ export class App extends Component<{}, State> {
     )
   }
 
-  private renderRow = (index?: number) => {
-    if (index === undefined) index = this.state.rows.length
-
-    const cols: FieldData<string>[] = []
-    const startIndex = index * COL_COUNT
-    const endIndex = (index + 1) * COL_COUNT - 1
-    const colsIndexes = [...range(startIndex, endIndex)]
+  private renderRow = (rowIndex: number) => {
+    const cols: NumberFieldData[] = []
+    const startIndex = rowIndex * COL_COUNT
+    const endIndex = (rowIndex + 1) * COL_COUNT - 1
+    const fieldsIndexes = [...range(startIndex, endIndex)]
 
     const { fields } = this._form
 
-    colsIndexes.forEach(index => {
+    fieldsIndexes.forEach(index => {
       if (!fields[index])
         this._form.addField({
           name: `${index}`
@@ -61,9 +67,20 @@ export class App extends Component<{}, State> {
     })
 
     return (
-      <div key={index} style={{ marginBottom: 20 }}>
-        {cols.map(field => (
-          <TextField key={field.name} {...field} />
+      <div key={rowIndex} style={{ marginBottom: 20 }}>
+        {cols.map((field, _colIndex) => (
+          <NumberField
+            key={field.name}
+            {...field}
+            // onChange={value =>
+            //   this.onChange({
+            //     field,
+            //     value,
+            //     fieldIndex: fieldsIndexes[colIndex],
+            //     colIndex
+            //   })
+            // }
+          />
         ))}
       </div>
     )
@@ -71,6 +88,45 @@ export class App extends Component<{}, State> {
 
   private addRow = () =>
     this.setState(prevState => ({
-      rows: [...prevState.rows, this.renderRow()]
+      rowsCount: prevState.rowsCount + 1
     }))
+
+  // private onChange = ({
+  //   field,
+  //   value,
+  //   colIndex,
+  //   fieldIndex
+  // }: OnChangeFnArgs) => {
+  //   const { fields } = this._form
+  //   if (value === undefined) return field.onChange(value)
+
+  //   switch (colIndex) {
+  //     case 0: {
+  //       const prevField = fields[fieldIndex - COL_COUNT]
+  //       console.log({
+  //         colIndex,
+  //         prevField,
+  //         count: fieldIndex - COL_COUNT,
+  //         bool: !prevField || prevField.value < value,
+  //         pValue: prevField && prevField.value,
+  //         value
+  //       })
+  //       if (!prevField || prevField.value < value) return field.onChange(value)
+  //       return
+  //     }
+  //     case 1: {
+  //       const nextField = fields[fieldIndex + COL_COUNT]
+  //       console.log({
+  //         colIndex,
+  //         nextField,
+  //         count: fieldIndex + COL_COUNT,
+  //         bool: !nextField || nextField.value > value
+  //       })
+  //       if (!nextField || nextField.value > value) return field.onChange(value)
+  //       return
+  //     }
+  //     default:
+  //       return field.onChange(value)
+  //   }
+  // }
 }
