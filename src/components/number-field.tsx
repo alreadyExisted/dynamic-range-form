@@ -14,7 +14,18 @@ export class NumberField extends Component<NumberFieldData> {
       onChange,
       ...rest
     } = this.props
-    return <input type="text" {...rest} onChange={this.handleChange} />
+    return (
+      <div>
+        {label && <span>{label}</span>}
+        <input
+          style={{ display: 'block' }}
+          type="text"
+          {...rest}
+          onChange={this.handleChange}
+        />
+        {error && <div style={{ color: 'red' }}>{error}</div>}
+      </div>
+    )
   }
 
   private handleChange = (e: ChangeEvent<HTMLInputElement>) => {

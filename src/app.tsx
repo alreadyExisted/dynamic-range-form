@@ -4,16 +4,10 @@ import { NumberField, NumberFieldData } from './components/number-field'
 import { range } from './utils'
 
 const COL_COUNT = 3
-
-// interface OnChangeFnArgs {
-//   field: NumberFieldData
-//   value: number | undefined
-//   colIndex: number
-//   fieldIndex: number
-// }
+const colsIndexes = [...range(0, COL_COUNT - 1)]
 
 interface State {
-  rowsCount: number
+  rowsIndexes: string[]
 }
 
 export class App extends Component<{}, State> {
@@ -25,14 +19,12 @@ export class App extends Component<{}, State> {
     super(props)
 
     this.state = {
-      rowsCount: 1
+      rowsIndexes: [this.getId()]
     }
   }
 
   render() {
     const { handleSubmit } = this._form
-    const { rowsCount } = this.state
-    const rows = new Array(rowsCount).fill(0)
     return (
       <div
         style={{
@@ -41,92 +33,109 @@ export class App extends Component<{}, State> {
         }}
       >
         <form style={{ margin: 'auto' }} onSubmit={handleSubmit}>
-          {rows.map((_, index) => this.renderRow(index))}
-          <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <button onClick={this.addRow}>ADD</button>
-          </div>
+          <h1>Ranges</h1>
+          {this.renderRows()}
         </form>
       </div>
     )
   }
 
-  private renderRow = (rowIndex: number) => {
-    const cols: NumberFieldData[] = []
-    const startIndex = rowIndex * COL_COUNT
-    const endIndex = (rowIndex + 1) * COL_COUNT - 1
-    const fieldsIndexes = [...range(startIndex, endIndex)]
+  private renderRows = () =>
+    this.state.rowsIndexes.map(id => this.renderRow(id))
 
+  private renderRow = (id: string) => {
     const { fields } = this._form
+    const cols: NumberFieldData[] = []
 
-    fieldsIndexes.forEach(index => {
-      if (!fields[index])
+    colsIndexes.forEach(colIndex => {
+      const name = `${id}-${colIndex}`
+      if (!fields[name])
         this._form.addField({
-          name: `${index}`
+          name
         })
-      cols.push(fields[`${index}`])
+
+      cols.push(fields[name])
     })
 
     return (
-      <div key={rowIndex} style={{ marginBottom: 20 }}>
-        {cols.map((field, _colIndex) => (
+      <div
+        key={id}
+        style={{ display: 'flex', alignItems: 'flex-end', marginBottom: 20 }}
+      >
+        {cols.map((field, colIndex) => (
           <NumberField
             key={field.name}
             {...field}
-            // onChange={value =>
-            //   this.onChange({
-            //     field,
-            //     value,
-            //     fieldIndex: fieldsIndexes[colIndex],
-            //     colIndex
-            //   })
-            // }
+            label={this.getLabelField(colIndex)}
           />
         ))}
+        <button onClick={() => this.addRow(id)}>+</button>
+        <button onClick={() => this.removeRow(id)}>-</button>
       </div>
     )
   }
 
-  private addRow = () =>
+  private addRow = (id: string) => {
+    this.setState(prevState => {
+      const currentRowIndex = prevState.rowsIndexes.findIndex(
+        item => item === id
+      )
+      const rowsIndexes = [...prevState.rowsIndexes]
+      rowsIndexes.splice(currentRowIndex + 1, 0, this.getId())
+      return {
+        rowsIndexes
+      }
+    })
+  }
+
+  private removeRow = (id: string) => {
+    this._form.removeFields(
+      colsIndexes.map(colIndex => this.getFieldName(id, colIndex))
+    )
     this.setState(prevState => ({
-      rowsCount: prevState.rowsCount + 1
+      rowsIndexes: prevState.rowsIndexes.filter(item => item !== id)
     }))
+  }
 
-  // private onChange = ({
-  //   field,
-  //   value,
-  //   colIndex,
-  //   fieldIndex
-  // }: OnChangeFnArgs) => {
+  private getId = () =>
+    Math.random()
+      .toString(36)
+      .substring(2, 5)
+
+  private getFieldName = (id: string, colIndex: number) => `${id}-${colIndex}`
+
+  private getLabelField = (colIndex: number) => {
+    switch (colIndex) {
+      case 0:
+        return 'from'
+      case 1:
+        return 'to'
+      case 2:
+        return 'value'
+      default:
+        return null
+    }
+  }
+
+  // private getValidateField = (id: string, colIndex: number, value: number) => {
   //   const { fields } = this._form
-  //   if (value === undefined) return field.onChange(value)
-
+  //   const { rowsIndexes } = this.state
+  //   const currentRowIndex = rowsIndexes.findIndex(item => item === id)
   //   switch (colIndex) {
   //     case 0: {
-  //       const prevField = fields[fieldIndex - COL_COUNT]
-  //       console.log({
-  //         colIndex,
-  //         prevField,
-  //         count: fieldIndex - COL_COUNT,
-  //         bool: !prevField || prevField.value < value,
-  //         pValue: prevField && prevField.value,
-  //         value
-  //       })
-  //       if (!prevField || prevField.value < value) return field.onChange(value)
+  //       const prevRowId = rowsIndexes[currentRowIndex - 1]
+  //       const prevField = fields[this.getFieldName(prevRowId, 1)]
+  //       if (prevField && prevField.value > value) return 'min-value'
   //       return
   //     }
   //     case 1: {
-  //       const nextField = fields[fieldIndex + COL_COUNT]
-  //       console.log({
-  //         colIndex,
-  //         nextField,
-  //         count: fieldIndex + COL_COUNT,
-  //         bool: !nextField || nextField.value > value
-  //       })
-  //       if (!nextField || nextField.value > value) return field.onChange(value)
+  //       const nextRowId = rowsIndexes[currentRowIndex + 1]
+  //       const nextField = fields[this.getFieldName(nextRowId, 0)]
+  //       if (nextField && nextField.value < value) return 'max-value'
   //       return
   //     }
   //     default:
-  //       return field.onChange(value)
+  //       return
   //   }
   // }
 }

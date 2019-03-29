@@ -7,7 +7,7 @@
     "@types/node": "^11.12.0",
     "@types/react": "^16.8.10",
     "@types/react-dom": "^16.8.3",
-    "forms-builder": "^0.5.0",
+    "forms-builder": "^0.5.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "2.1.8",
