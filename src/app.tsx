@@ -96,8 +96,9 @@ export class App extends Component<{}, State> {
     colIndex
   }: FieldOrderData) => {
     if (
-      (rowIndex === 0 && colIndex === 0) ||
-      (rowIndex === this.state.rowsIndexes.length - 1 && colIndex === 1)
+      ((rowIndex === 0 && colIndex === 0) ||
+        (rowIndex === this.state.rowsIndexes.length - 1 && colIndex === 1)) &&
+      value
     )
       this.addRow(this.getId())
 
