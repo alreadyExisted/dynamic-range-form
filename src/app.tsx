@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { formBuilder } from 'forms-builder'
+import { formBuilder, FieldData } from 'forms-builder'
 import { NumberField, NumberFieldData } from './components/number-field'
 import { range } from './utils'
 
@@ -8,6 +8,13 @@ const colsIndexes = [...range(0, COL_COUNT - 1)]
 
 interface State {
   rowsIndexes: string[]
+}
+
+interface FieldOrderData {
+  value: number | undefined
+  field: FieldData<number | undefined>
+  rowIndex: number
+  colIndex: number
 }
 
 export class App extends Component<{}, State> {
@@ -19,7 +26,7 @@ export class App extends Component<{}, State> {
     super(props)
 
     this.state = {
-      rowsIndexes: [this.getId()]
+      rowsIndexes: [this.getId(), this.getId()]
     }
   }
 
@@ -41,9 +48,9 @@ export class App extends Component<{}, State> {
   }
 
   private renderRows = () =>
-    this.state.rowsIndexes.map(id => this.renderRow(id))
+    this.state.rowsIndexes.map((id, rowIndex) => this.renderRow(id, rowIndex))
 
-  private renderRow = (id: string) => {
+  private renderRow = (id: string, rowIndex: number) => {
     const { fields } = this._form
     const cols: NumberFieldData[] = []
 
@@ -57,6 +64,8 @@ export class App extends Component<{}, State> {
       cols.push(fields[name])
     })
 
+    const disabled = this.state.rowsIndexes.length === 2
+
     return (
       <div
         key={id}
@@ -66,13 +75,33 @@ export class App extends Component<{}, State> {
           <NumberField
             key={field.name}
             {...field}
+            onChange={value =>
+              this.handleChange({ value, field, rowIndex, colIndex })
+            }
             label={this.getLabelField(colIndex)}
           />
         ))}
         <button onClick={() => this.addRow(id)}>+</button>
-        <button onClick={() => this.removeRow(id)}>-</button>
+        <button onClick={() => this.removeRow(id)} disabled={disabled}>
+          -
+        </button>
       </div>
     )
+  }
+
+  private handleChange = ({
+    value,
+    field,
+    rowIndex,
+    colIndex
+  }: FieldOrderData) => {
+    if (
+      (rowIndex === 0 && colIndex === 0) ||
+      (rowIndex === this.state.rowsIndexes.length - 1 && colIndex === 1)
+    )
+      this.addRow(this.getId())
+
+    field.onChange(value)
   }
 
   private addRow = (id: string) => {
